@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VALUEVISTA</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { 
+    font-family: Arial, sans-serif; 
+    margin: 0;
+    background-image: url("{{ url_for('static', filename='background.jpg.jpg') }}"); 
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    text-align: center;
+              }
+
+        form { 
+            max-width: 400px; 
+            margin: auto; 
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, select, button { 
+            display: block; 
+            width: 100%; 
+            margin-top: 10px; 
+            padding: 10px; 
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #119dcc;
+            color: white;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1673dc;
+        }
+        h2 {
+            color: #000000;
+        }
+        #prediction-result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #000000;
+            background-color: #ffffff;
+            padding: 10px;
+            display: inline-block;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VALUEVISTA</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0;
+            background-image: url("{{ url_for('static', filename='background.jpg.jpg') }}"); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            text-align: center;
+        }
+
+        form { 
+            max-width: 400px; 
+            margin: auto; 
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        input, select, button { 
+            display: block; 
+            width: 100%; 
+            margin-top: 10px; 
+            padding: 10px; 
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #119dcc;
+            color: white;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1673dc;
+        }
+        h2 {
+            color: #000000;
+        }
+        #prediction-result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #000000;
+            background-color: #ffffff;
+            padding: 10px;
+            display: inline-block;
+            border-radius: 5px;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ValueVista</h1>
+    <h2>Bangalore House Price Prediction</h2>
+    <form id="prediction-form">
+        <label>Total Square Feet:</label>
+        <input type="number" id="total_sqft" required>
+        <div class="error" id="total_sqft_error"></div>
+        
+        <label>BHK:</label>
+        <select id="bhk" required>
+            <option value="1">1 BHK</option>
+            <option value="2">2 BHK</option>
+            <option value="3">3 BHK</option>
+            <option value="4">4 BHK</option>
+            <option value="5">5+ BHK</option>
+        </select>
+        <div class="error" id="bhk_error"></div>
+        
+        <label>Bathroom:</label>
+        <select id="bath" required>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5+</option>
+        </select>
+        <div class="error" id="bath_error"></div>
+        
+        <label>Location:</label>
+        <select id="location" required>
+            <option value="">Select Location</option>
+        </select>
+        <div class="error" id="location_error"></div>
+        
+        <button type="submit">Predict Price</button>
+    </form>
+    
+    <h3 id="prediction-result"></h3>
+    
+    <script>
+        $(document).ready(function(){
+            $.getJSON("/get_locations", function(data) {
+                var locationDropdown = $('#location');
+                data.locations.forEach(function(location) {
+                    locationDropdown.append(new Option(location, location));
+                });
+            });
+
+            $('#prediction-form').on('submit', function(e){
+                e.preventDefault();
+                var total_sqft = $('#total_sqft').val();
+                var bhk = $('#bhk').val();
+                var bath = $('#bath').val();
+                var location = $('#location').val().toLowerCase();
+
+                if (total_sqft === '') {
+                    $('#total_sqft_error').text('Please enter total square feet');
+                } else {
+                    $('#total_sqft_error').text('');
+                }
+
+                if (bhk === '') {
+                    $('#bhk_error').text('Please select BHK');
+                } else {
+                    $('#bhk_error').text('');
+                }
+
+                if (bath === '') {
+                    $('#bath_error').text('Please select bathroom');
+                } else {
+                    $('#bath_error').text('');
+                }
+
+                if (location === '') {
+                    $('#location_error').text('Please select location');
+                } else {
+                    $('#location_error').text('');
+                }
+
+                if (total_sqft !== '' && bhk !== '' && bath !== '' && location !== '') {
+                    $.ajax({
+                        url: '/predict',
+                        type: 'POST',
+                        data: {
+                            total_sqft: total_sqft,
+                            bhk: bhk,
+                            bath: bath,
+                            location: location
+                        },
+                        success: function(response){
+                            $('#prediction-result').text('Estimated Price: ₹' + response.estimated_price + ' Lakhs');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+    
+</body>
+</html>
